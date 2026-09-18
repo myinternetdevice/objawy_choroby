@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="system">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="SymptoAI – profesjonalna wstępna analiza objawów. Nie zastępuje konsultacji lekarskiej." />
+  <title>SymptoAI – Wstępna analiza objawów</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef9ff',
+              100: '#d9f1ff',
+              200: '#bce7ff',
+              300: '#8ed8ff',
+              400: '#59c0ff',
+              500: '#33a1ff',
+              600: '#1a7ff5',
+              700: '#1469e1',
+              800: '#1755b6',
+              900: '#19498f',
+              950: '#142d57',
+            },
+            medical: {
+              teal: '#0d9488',
+              mint: '#14b8a6',
+              soft: '#ccfbf1',
+            }
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(0,0,0,0.06), 0 2px 8px -2px rgba(0,0,0,0.04)',
+            'card': '0 10px 40px -10px rgba(0,0,0,0.08), 0 4px 12px -4px rgba(0,0,0,0.04)',
+            'glow': '0 0 40px -10px rgba(26,127,245,0.35)',
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.4s ease-out',
+            'slide-up': 'slideUp 0.45s cubic-bezier(0.16,1,0.3,1)',
+            'pulse-soft': 'pulseSoft 2.5s ease-in-out infinite',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(16px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            pulseSoft: { '0%,100%': { opacity: '1' }, '50%': { opacity: '0.7' } },
+            float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+/* Custom styles beyond Tailwind */
+:root {
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: var(--safe-bottom);
+}
+
+/* Smooth theme transition */
+html {
+  color-scheme: light dark;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* Card hover lift */
+.card-interactive {
+  transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
+}
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px -12px rgba(0,0,0,0.12);
+}
+
+/* Progress ring */
+.progress-ring {
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+/* Question transition */
+.question-enter {
+  animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200% 100%;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Alert banner pulse */
+.alert-pulse {
+  animation: alertPulse 2s ease-in-out infinite;
+}
+@keyframes alertPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, #1a7ff5, #0d9488);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Medical illustration decorative circles */
+.decor-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Button press */
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Focus ring */
+.focus-brand:focus-visible {
+  outline: 2px solid #1a7ff5;
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Result accordion */
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.accordion-content.open {
+  max-height: 1200px;
+}
+
+/* Floating medical icons */
+.float-icon {
+  animation: float 5s ease-in-out infinite;
+}
+.float-icon:nth-child(2) { animation-delay: 1s; }
+.float-icon:nth-child(3) { animation-delay: 2s; }
+
+</style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-300">
+  <!-- Splash / Loading -->
+  <div id="splash" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 text-white">
+    <div class="relative">
+      <div class="w-20 h-20 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shadow-glow animate-pulse-soft">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
+      </div>
+      <div class="absolute -inset-3 rounded-3xl border border-white/20 animate-ping opacity-40"></div>
+    </div>
+    <h1 class="mt-6 text-2xl font-display font-bold tracking-tight">SymptoAI</h1>
+    <p class="mt-2 text-brand-100 text-sm">Przygotowywanie bezpiecznej analizy…</p>
+    <div class="mt-8 w-48 h-1.5 bg-white/20 rounded-full overflow-hidden">
+      <div id="splash-bar" class="h-full bg-white rounded-full transition-all duration-500 ease-out" style="width:0%"></div>
+    </div>
+  </div>
+  <script>
+    // Fallback: never stay on splash longer than 4s even if scripts fail
+    setTimeout(function () {
+      var s = document.getElementById("splash");
+      var a = document.getElementById("app");
+      if (s && s.parentNode) {
+        s.style.opacity = "0";
+        s.style.transition = "opacity 0.4s";
+        setTimeout(function () { try { s.remove(); } catch (e) {} }, 500);
+      }
+      if (a) a.style.opacity = "1";
+    }, 4000);
+  </script>
+
+  <!-- App Root -->
+  <div id="app" class="min-h-screen flex flex-col opacity-0 transition-opacity duration-500">
+    <!-- Top Navigation (desktop) -->
+    <header id="main-header" class="hidden lg:flex sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60">
+      <div class="max-w-7xl mx-auto w-full px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('home')">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white shadow-soft">
+            <i data-lucide="activity" class="w-5 h-5"></i>
+          </div>
+          <span class="font-display font-bold text-lg tracking-tight">SymptoAI</span>
+        </div>
+        <nav class="flex items-center gap-1" id="desktop-nav"></nav>
+        <div class="flex items-center gap-3" id="header-actions"></div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-8">
+      <!-- Dynamic views injected here -->
+    </main>
+
+    <!-- Mobile Bottom Nav -->
+    <nav id="mobile-nav" class="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/70 dark:border-slate-800/70 safe-bottom">
+      <div class="flex justify-around items-center h-16 px-2" id="mobile-nav-items"></div>
+    </nav>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[200] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Modal root -->
+  <div id="modal-root"></div>
+
+  <script>
+/**
+ * SymptoAI – Knowledge base & question tree
+ * Wszystkie opisy są ogólne i nie stanowią diagnozy.
+ * Dane oparte na powszechnie znanych, typowych prezentacjach klinicznych.
+ */
+
+const DISEASES = [
+  {
+    id: "common_cold",
+    name: "Przeziębienie (infekcja górnych dróg oddechowych)",
+    description: "Łagodna infekcja wirusowa nosa i gardła. Zwykle ustępuje w ciągu 7–10 dni.",
+    typical: ["katar", "zatkany_nos", "bol_gardla", "kaszel_suchy", "lekka_goraczka", "oslabienie", "kichanie"],
+    lessTypical: ["bol_glowy", "bol_miesni"],
+    against: ["wysoka_goraczka", "duszno", "bol_klatki", "krwioplucie"],
+    redFlags: [],
+    factors: ["kontakt_z_chorym", "pora_zimowa"],
+    consult: "Jeśli objawy trwają dłużej niż 10 dni, nasilają się lub pojawia się duszność – skonsultuj się z lekarzem.",
+    category: "oddechowy"
+  },
+  {
+    id: "influenza",
+    name: "Grypa (lub infekcja grypopodobna)",
+    description: "Ostra infekcja wirusowa układu oddechowego, często z wysoką gorączką i silnym osłabieniem.",
+    typical: ["wysoka_goraczka", "dreszcze", "bol_miesni", "bol_glowy", "oslabienie", "kaszel_suchy", "bol_gardla"],
+    lessTypical: ["katar", "nudnosci"],
+    against: ["brak_goraczki", "tylko_katar"],
+    redFlags: ["duszno", "bol_klatki", "splątanie"],
+    factors: ["kontakt_z_chorym", "sezon_grypowy"],
+    consult: "Przy wysokiej gorączce utrzymującej się >3 dni, duszności lub u osób z grupy ryzyka – konieczna konsultacja.",
+    category: "oddechowy"
+  },
+  {
+    id: "acute_bronchitis",
+    name: "Ostre zapalenie oskrzeli",
+    description: "Stan zapalny oskrzeli, najczęściej po infekcji wirusowej. Kaszel może utrzymywać się kilka tygodni.",
+    typical: ["kaszel_mokry", "wydzielina", "bol_przy_kaszu", "oslabienie", "lekka_goraczka"],
+    lessTypical: ["duszno", "swiszczacy_oddech"],
+    against: ["wysoka_goraczka_dlugo", "krwioplucie"],
+    redFlags: ["duszno_silna", "krwioplucie"],
+    factors: ["palenie", "infekcja_poprzedzajaca"],
+    consult: "Jeśli kaszel trwa >3 tygodnie, pojawia się duszność lub gorączka – zgłoś się do lekarza.",
+    category: "oddechowy"
+  },
+  {
+    id: "allergic_rhinitis",
+    name: "Alergiczny nieżyt nosa",
+    description: "Reakcja alergiczna objawiająca się katarem, kichaniem i swędzeniem nosa/oczu.",
+    typical: ["katar", "kichanie", "swedzenie_nosa", "zatkany_nos", "swedzenie_oczu", "lodzienie_oczu"],
+    lessTypical: ["kaszel_suchy"],
+    against: ["goraczka", "bol_miesni", "oslabienie_silne"],
+    redFlags: [],
+    factors: ["alergie", "sezon_pylenia", "kontakt_ze_zwierzetami"],
+    consult: "Przy uporczywych objawach warto skonsultować się z alergologiem.",
+    category: "oddechowy"
+  },
+  {
+    id: "gerd",
+    name: "Refluks żołądkowo-przełykowy (GERD)",
+    description: "Cofanie treści żołądkowej do przełyku powodujące zgagę i dyskomfort.",
+    typical: ["zgaga", "bol_w_nadbrzuszu", "uczucie_pieczenia", "regurgitacja", "kaszel_nocny"],
+    lessTypical: ["bol_klatki", "chrypka"],
+    against: ["goraczka", "wymioty_krwawe"],
+    redFlags: ["wymioty_krwawe", "czarny_stolce", "utrata_masy"],
+    factors: ["otyłość", "posilki_tłuste", "lezenie_po_jedzeniu"],
+    consult: "Przy uporczywej zgadze, bólach w klatce lub objawach alarmowych – konsultacja gastroenterologiczna.",
+    category: "pokarmowy"
+  },
+  {
+    id: "tension_headache",
+    name: "Ból głowy typu napięciowego",
+    description: "Najczęstszy rodzaj bólu głowy, zwykle związany ze stresem lub napięciem mięśniowym.",
+    typical: ["bol_glowy", "ucisk_na_skronie", "bol_karku", "stres"],
+    lessTypical: ["lekie_nudnosci"],
+    against: ["nagly_silny_bol", "wymioty", "zaburzenia_widzenia", "sztywnosc_karku"],
+    redFlags: ["nagly_silny_bol", "zaburzenia_mowy", "oslabienie_konczyn"],
+    factors: ["stres", "brak_snu", "dluga_praca_przy_komputerze"],
+    consult: "Przy nagłym, bardzo silnym bólu głowy lub towarzyszących objawach neurologicznych – natychmiastowa pomoc.",
+    category: "nerwowy"
+  },
+  {
+    id: "migraine",
+    name: "Migrena",
+    description: "Nawracający, często jednostronny ból głowy z towarzyszącymi objawami neurologicznymi.",
+    typical: ["bol_glowy_jednostronny", "nudnosci", "swiatlowstret", "dzwiekowstret", "aura"],
+    lessTypical: ["wymioty", "zawroty"],
+    against: ["goraczka", "sztywnosc_karku"],
+    redFlags: ["nagly_silny_bol", "zaburzenia_mowy"],
+    factors: ["historia_migreny", "stres", "hormony", "brak_snu"],
+    consult: "Przy pierwszym epizodzie lub zmianie charakteru bólu – konsultacja neurologiczna.",
+    category: "nerwowy"
+  },
+  {
+    id: "gastroenteritis",
+    name: "Zapalenie żołądka i jelit (nieżyt żołądkowo-jelitowy)",
+    description: "Infekcja lub podrażnienie przewodu pokarmowego objawiające się wymiotami i/lub biegunką.",
+    typical: ["nudnosci", "wymioty", "biegunka", "bol_brzucha", "oslabienie", "brak_apetytu"],
+    lessTypical: ["lekka_goraczka", "bol_miesni"],
+    against: ["krwawe_stolce", "silne_odwodnienie"],
+    redFlags: ["krwawe_stolce", "wymioty_krwawe", "silne_odwodnienie", "silny_bol_brzucha"],
+    factors: ["kontakt_z_chorym", "spożywanie_ryzykownych_pokarmow", "podroz"],
+    consult: "Przy objawach odwodnienia, krwi w stolcu lub utrzymujących się >48h – skontaktuj się z lekarzem.",
+    category: "pokarmowy"
+  },
+  {
+    id: "uti",
+    name: "Zakażenie układu moczowego",
+    description: "Infekcja bakteryjna dróg moczowych, częstsza u kobiet.",
+    typical: ["pieczenie_przy_oddawaniu_moczu", "czeste_oddawanie_moczu", "bol_w_podbrzuszu", "mętny_mocz"],
+    lessTypical: ["goraczka", "bol_w_plecach"],
+    against: [],
+    redFlags: ["goraczka_wysoka", "bol_w_bokach", "nudnosci_z_goraczka"],
+    factors: ["plec_zenska", "odwodnienie", "historia_zakażen"],
+    consult: "Zawsze warto skonsultować objawy z lekarzem – często wymagane jest badanie moczu i antybiotyk.",
+    category: "moczowy"
+  },
+  {
+    id: "musculoskeletal_pain",
+    name: "Ból mięśniowo-szkieletowy / przeciążeniowy",
+    description: "Ból wynikający z przeciążenia, urazu lub napięcia mięśni i stawów.",
+    typical: ["bol_miesni", "bol_stawow", "bol_po_wysiłku", "sztywnosc", "bol_lokalny"],
+    lessTypical: ["obrzęk"],
+    against: ["goraczka", "silne_zaczerwienienie", "ogolne_oslabienie"],
+    redFlags: ["bol_po_urazie_z_obrzękiem", "niemożność_obciążenia"],
+    factors: ["intensywny_wysiłek", "uraz", "długa_pozycja"],
+    consult: "Przy silnym bólu po urazie, obrzęku lub ograniczeniu ruchomości – konsultacja ortopedyczna/fizjoterapeutyczna.",
+    category: "miesniowo"
+  },
+  {
+    id: "anxiety_symptoms",
+    name: "Objawy związane ze stresem / lękiem",
+    description: "Objawy somatyczne mogące towarzyszyć stanom lękowym lub silnemu stresowi.",
+    typical: ["kołatanie", "duszno_uczucie", "zawroty", "napięcie_miesni", "zaburzenia_snu", "zmęczenie"],
+    lessTypical: ["bol_klatki", "nudnosci"],
+    against: ["goraczka", "kaszel_z_wydzielina"],
+    redFlags: ["bol_klatki_z_promieniowaniem", "utrata_przytomnosci"],
+    factors: ["stres", "brak_snu", "historia_leku"],
+    consult: "Przy utrzymujących się objawach lub lęku o zdrowie – warto porozmawiać z lekarzem lub psychologiem.",
+    category: "psychiczny"
+  },
+  {
+    id: "skin_irritation",
+    name: "Podrażnienie / reakcja skórna",
+    description: "Zmiany skórne o charakterze podrażnieniowym lub alergicznym.",
+    typical: ["wysypka", "swiad", "zaczerwienienie", "obrzęk_lokalny"],
+    lessTypical: ["pecherzyki"],
+    against: ["goraczka_z_wysypka", "rozległe_pęcherze"],
+    redFlags: ["obrzęk_twarzy", "duszno", "rozległe_pęcherze", "goraczka_z_wysypka"],
+    factors: ["alergie", "nowy_kosmetyk", "kontakt_ze_zwierzetami"],
+    consult: "Przy obrzęku twarzy, duszności lub szybko rozprzestrzeniającej się wysypce – natychmiastowa pomoc.",
+    category: "skora"
+  },
+  {
+    id: "covid_like",
+    name: "Infekcja wirusowa typu COVID / grypopodobna",
+    description: "Infekcja wirusowa z kaszlem, gorączką, utratą węchu/smaku i osłabieniem. Objawy bywają bardzo zróżnicowane.",
+    typical: ["kaszel_suchy", "wysoka_goraczka", "oslabienie", "bol_miesni", "bol_glowy", "utrata_wechu"],
+    lessTypical: ["duszno", "bol_gardla", "biegunka"],
+    against: ["tylko_katar"],
+    redFlags: ["duszno_silna", "bol_klatki", "splątanie"],
+    factors: ["kontakt_z_chorym", "podroz"],
+    consult: "Przy duszności, utrzymującej się wysokiej gorączce lub pogorszeniu – skontaktuj się z lekarzem.",
+    category: "oddechowy"
+  },
+  {
+    id: "sinusitis",
+    name: "Zapalenie zatok przynosowych",
+    description: "Stan zapalny zatok, często po przeziębieniu. Ból twarzy, zatkany nos, wydzielina.",
+    typical: ["zatkany_nos", "bol_twarzy", "bol_glowy", "wydzielina", "oslabienie"],
+    lessTypical: ["goraczka", "bol_zebow"],
+    against: ["duszno_silna"],
+    redFlags: ["silny_bol_twarzy", "obrzęk_oczu"],
+    factors: ["alergie", "infekcja_poprzedzajaca"],
+    consult: "Jeśli objawy trwają >10 dni lub nasilają się – warto skonsultować z laryngologiem.",
+    category: "oddechowy"
+  },
+  {
+    id: "pharyngitis",
+    name: "Zapalenie gardła / angina",
+    description: "Stan zapalny gardła, wirusowy lub bakteryjny. Ból przy przełykaniu, zaczerwienienie.",
+    typical: ["bol_gardla", "bol_przy_polykaniu", "zaczerwienienie_gardla", "lekka_goraczka", "oslabienie"],
+    lessTypical: ["naloty", "powiekszone_wezly"],
+    against: ["katar_silny"],
+    redFlags: ["trudnosci_z_oddychaniem", "slinienie"],
+    factors: ["kontakt_z_chorym"],
+    consult: "Przy wysokiej gorączce, nalotach lub utrzymującym się bólu – konsultacja lekarska (może być potrzebny wymaz).",
+    category: "oddechowy"
+  },
+  {
+    id: "pneumonia_suspect",
+    name: "Podejrzenie zapalenia płuc",
+    description: "Infekcja dolnych dróg oddechowych z kaszlem, dusznością i gorączką. Wymaga oceny lekarskiej.",
+    typical: ["kaszel_mokry", "wysoka_goraczka", "duszno", "bol_klatki", "oslabienie"],
+    lessTypical: ["dreszcze", "wydzielina_ropna"],
+    against: ["tylko_katar"],
+    redFlags: ["duszno_silna", "krwioplucie", "splątanie"],
+    factors: ["wiek_podeszly", "oslabienie_odpornosci"],
+    consult: "Objawy sugerujące zapalenie płuc wymagają szybkiej konsultacji lekarskiej i często RTG.",
+    category: "oddechowy"
+  },
+  {
+    id: "asthma_exacerbation",
+    name: "Zaostrzenie astmy / świszczący oddech",
+    description: "Nasilenie objawów duszności i świszczącego oddechu, często po alergenach lub infekcji.",
+    typical: ["duszno", "swiszczacy_oddech", "kaszel_suchy", "uczucie_sciskania"],
+    lessTypical: ["bol_klatki"],
+    against: ["goraczka_wysoka"],
+    redFlags: ["duszno_silna", "sinica"],
+    factors: ["alergie", "astma_w_wywiadzie"],
+    consult: "Przy narastającej duszności użyj leków doraźnych i skontaktuj się z lekarzem lub wezwij pomoc.",
+    category: "oddechowy"
+  },
+  {
+    id: "ibs",
+    name: "Zespół jelita drażliwego (IBS)",
+    description: "Przewlekłe dolegliwości jelitowe: bóle brzucha, wzdęcia, biegunka lub zaparcia bez organicznej przyczyny.",
+    typical: ["bol_brzucha", "wzdęcia", "biegunka", "zaparcia", "zmiana_rytmu_wypróżnień"],
+    lessTypical: ["śluz_w_stolcu"],
+    against: ["krwawe_stolce", "utrata_masy", "goraczka"],
+    redFlags: ["krwawe_stolce", "utrata_masy", "nocne_wybudzenia"],
+    factors: ["stres", "diet
